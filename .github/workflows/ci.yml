@@ -1,0 +1,39 @@
+name: CI - Odoo 17 DevOps
+
+on:
+  push:
+    branches:
+      - master
+      - main
+
+  pull_request:
+    branches:
+      - master
+      - main
+
+jobs:
+  validate:
+    name: Validate Docker Compose
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create test environment
+        run: |
+          cp .env.example .env
+
+      - name: Validate Docker Compose
+        run: |
+          docker compose config
+
+      - name: Check project files
+        run: |
+          test -f compose.yaml
+          test -f README.md
+          test -f .gitignore
+
+      - name: CI completed
+        run: |
+          echo "CI validation completed successfully"
