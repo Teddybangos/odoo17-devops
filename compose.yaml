@@ -1,0 +1,70 @@
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: postgres-odoo
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    networks:
+      - odoo-network
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  odoo:
+    image: odoo:17
+    container_name: odoo17
+    restart: unless-stopped
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      HOST: postgres
+      PORT: 5432
+      USER: ${POSTGRES_USER}
+      PASSWORD: ${POSTGRES_PASSWORD}
+
+    ports:
+      - "8069:8069"
+
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - odoo-config:/etc/odoo
+      - odoo-addons:/mnt/extra-addons
+
+    networks:
+      - odoo-network
+
+
+volumes:
+  postgres_data:
+    external: true
+
+  odoo-data:
+    external: true
+
+  odoo-config:
+    external: true
+
+  odoo-addons:
+    name: f58986263e25fd76ed4bf856ae74c8a15a9c9737c0638448776a79972ed6fe90
+    external: true
+
+
+networks:
+  odoo-network:
+    external: true
